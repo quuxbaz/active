@@ -102,8 +102,9 @@
   ;; different threads do have their own process table.  (I guess.)
   (printf "Current working directory: ~a~n" (current-directory))
   (model:database-start-up)
-  (when (update?)
-    (model:set-up))
+  (if (update?)
+      (model:set-up)
+      (model:set-up-later))
   #;(model:schedule-update))
 
 (define update? (make-parameter #t))

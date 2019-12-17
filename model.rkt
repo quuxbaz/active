@@ -9,7 +9,7 @@
 
 ;; configuration
 (define the-database (make-parameter "./the-database.db"))
-(define *the-delay-interval* 30) ;; minutes
+(define *the-delay-interval* 60) ;; minutes
 
 (define db-conn #f)
 
@@ -65,9 +65,9 @@
 (define (get-programs-and-activities-all)
   (define sql
     (string-append 
-     "select * from programs where 1 = 1 order by p_name"
-     (if (file-exists? "./conf/not-tentative") " and p_status <> 'Tentative' " " ")
-     (if (file-exists? "./conf/hide-on-internet") " and p_hide_on_internet <> 'True' " " ")))
+     "select * from programs where 1 = 1 and p_status = 'Open' "
+     (if (file-exists? "./conf/hide-on-internet") " and p_hide_on_internet <> 'True' " " ")
+     "order by p_name"))
   (printf "database: ~a~n" sql)
   (sql-fetch sql))
 
@@ -102,7 +102,8 @@
     (path->string f)))
 
 (define (update [log? true])
-  (after *the-delay-interval* #:minutes (update))
+  (printf "Update procedure begins...")
+  (after *the-delay-interval* #:minutes (update log?))
   (with-handlers 
       ([exn? (lambda (e) 
                (displayln (exn->string e))
@@ -138,7 +139,8 @@
     (printf "Update completely done.~n")
     (when log?
       (close-output-port (current-output-port)))
-    (current-output-port old-port)))
+    (current-output-port old-port)
+    (printf "Update procedure just finished @ ~a.~n" (~t (now) "yyyy-MM-dd HH:mm:ss"))))
 
 (define (schedule-update)
   (displayln "Scheduling updates...")
@@ -254,7 +256,12 @@
 
 (define (set-up)
   (printf "Preparing database...~n")
-  (update false)
+  ;(update false)
+  'done)
+
+(define (set-up-later)
+  (printf "Will update after ~a minutes...~n" *the-delay-interval*)
+  (after *the-delay-interval* #:minutes #t)
   'done)
 
 (define (populate)
@@ -434,7 +441,7 @@
   (define stm (format "INSERT INTO programs (~a) VALUES (~a)" 
                       fields (make-dollars (length fields-programs))))
   ;; Strategy. First download all data to complete the record.  Then
-  ;; do an atomic insert.
+  ;; do an atomic insert, after deleting the record.
   (with-handlers 
       ([list? (λ (e) 
                 (displayln "caught exception while trying to update a program:") 
