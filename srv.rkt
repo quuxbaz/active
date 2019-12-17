@@ -104,10 +104,9 @@
   (model:database-start-up)
   (if (update?)
       (model:set-up)
-      (model:set-up-later))
-  #;(model:schedule-update))
+      (model:set-up-later)))
 
-(define update? (make-parameter #t))
+(define update? (make-parameter #f))
 (define no-browser? (make-parameter #f))
 (define tcp-port (make-parameter 1111))
 
@@ -128,12 +127,12 @@
     (displayln (format "TCP port ~a set." (tcp-port)))]
    [("--no-browser") "Don't try to open the local browser."
     (no-browser? #t)]
-   [("--no-update") "Don't update upon start-up."
+   [("--update-now") "Update /before/ serving pages."
     (update? #f)])
 
   (define (main)
     (set-things-up)
-    (displayln "Now serving...")
+    (printf "Now serving at port ~a...~n" (tcp-port))
     (serve/servlet dispatch 
                    #:stateless? #t
                    #:log-file (build-path "logs/httpd.log")

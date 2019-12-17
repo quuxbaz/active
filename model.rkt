@@ -142,10 +142,6 @@
     (current-output-port old-port)
     (printf "Update procedure just finished @ ~a.~n" (~t (now) "yyyy-MM-dd HH:mm:ss"))))
 
-(define (schedule-update)
-  (displayln "Scheduling updates...")
-  (after *the-delay-interval* #:minutes (update)))
-
 (define (get-connection)
   (displayln (format "get-connection: using database ~a." (the-database)))
   (sqlite3-connect #:database (the-database) #:mode 'create))
