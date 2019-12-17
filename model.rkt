@@ -251,13 +251,13 @@
   (query-exec db-conn stm))
 
 (define (set-up)
-  (printf "Preparing database...~n")
+  ;(printf "Preparing database...~n")
   ;(update false)
   'done)
 
 (define (set-up-later)
   (printf "Will update after ~a minutes...~n" *the-delay-interval*)
-  (after *the-delay-interval* #:minutes #t)
+  (after *the-delay-interval* #:minutes (update #t))
   'done)
 
 (define (populate)
